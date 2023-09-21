@@ -1,22 +1,24 @@
 package pt.uc.dei.fnp;
 
-import processing.core.PApplet;
-
+import processing.core.PImage;
 import static processing.core.PApplet.constrain;
 
 public class Container {
     protected float x = 0, y = 0, w = 0, h=0;
     protected int c = 255;
     protected int lifespan = 0;
+    protected PImage img;
     protected boolean alive = false;
     private Main p5;
 
 
-    public Container (float x, float y, float w, float h, int[] lifespan, Main p5) {
+    public Container (PImage img, float x, float y, float w, float h, int[] lifespan, Main p5) {
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
+        this.img = img;
+        this.img.resize((int) this.w, 0);
         this.lifespan = (int) (lifespan[0] + (Math.random()*(lifespan[0] - lifespan[1])));
         this.c = (int) (Math.random() * 255);
         this.p5 = p5;
@@ -31,6 +33,9 @@ public class Container {
             opacity = constrain(opacity, 0, 255);
             p5.fill(this.c, opacity);
             p5.rect(this.x, this.y, this.w, this.h);
+            p5.imageMode(p5.CENTER);
+            p5.tint(opacity);
+            p5.image(img, this.x+this.w/2, this.y+this.h/2);
             p5.popStyle();
 
             if (this.lifespan < 0) {
