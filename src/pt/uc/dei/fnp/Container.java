@@ -31,8 +31,8 @@ public class Container {
             p5.noStroke();
             int opacity = this.lifespan;
             opacity = constrain(opacity, 0, 255);
-            p5.fill(this.c, opacity);
-            p5.rect(this.x, this.y, this.w, this.h);
+            // p5.fill(this.c, opacity);
+            // p5.rect(this.x, this.y, this.w, this.h);
             p5.imageMode(p5.CENTER);
             p5.tint(opacity);
             p5.image(img, this.x+this.w/2, this.y+this.h/2);

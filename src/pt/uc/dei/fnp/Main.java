@@ -46,7 +46,7 @@ public class Main extends PApplet {
     }
 
     public void draw () {
-        background(245);
+        background(0);
         for (Container c : containers) {
             if (c.alive) {
                 c.draw();
@@ -56,6 +56,7 @@ public class Main extends PApplet {
 
     public PGraphics createPortrait() {
         // new PGRAPHIC
+        return null;
     }
 
     public PImage getPImage () {
