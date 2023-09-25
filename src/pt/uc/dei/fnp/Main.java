@@ -1,5 +1,6 @@
 package pt.uc.dei.fnp;
 
+import approach6.Portraitor;
 import processing.core.*;
 
 import java.io.File;
@@ -9,10 +10,15 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 public class Main extends PApplet {
     static private Properties prop = new Properties();
-    protected ArrayList<Container> containers = new ArrayList<Container>();
+    static private int MARGIN, BACKGROUND_COLOR = 0;
+    static private boolean DEBUG = false;
+    protected ArrayList<Container> containers = new ArrayList<>();
+    protected ArrayList<Portraitor> portraitors = new ArrayList<>();
+    public static Logger logger = Logger.getLogger(approach6.Main.class.getName());
 
     public void settings() {
         // size(500, 500);
@@ -20,8 +26,6 @@ public class Main extends PApplet {
     }
 
     public void setup() {
-        background(0);
-
         int nCols = parseInt(prop.getProperty("fnp.cols"));
         int nRows = parseInt(prop.getProperty("fnp.rows"));
         int [] lifespan = {
@@ -31,35 +35,60 @@ public class Main extends PApplet {
         float rectWidth = width/ (nCols * 1f);
         float rectHeight = height/ (nRows * 1f);
 
+        MARGIN = parseInt(prop.getProperty("portrait.margin"));
+        BACKGROUND_COLOR = parseInt(prop.getProperty("fnp.backgroundColor"));
+        DEBUG = parseBoolean(prop.getProperty("debug"));
+        System.out.println("DEBUG="+DEBUG);
 
-
-        // create containers
         for (int i=0; i<nCols; i++) {
             for (int j=0; j<nRows; j++) {
                 float x = i * rectWidth;
                 float y = j * rectHeight;
-                PImage img = this.getPImage();
-                Container c = new Container(img, x, y, rectWidth, rectHeight, lifespan, this);
+                String s = this.getPImage();
+                PImage img = loadImage(s);
+
+                Container c = new Container(null, x, y, rectWidth, rectHeight, lifespan, this);
+
+                Portraitor p = new Portraitor(this, logger);
+                p.portrait(img, true);
+                p.placeElements();
+                if (DEBUG) {
+                    c.turnOnDebug();
+                    c.setCaption(s);
+                }
+
+                portraitors.add(p);
                 containers.add(c);
             }
         }
     }
 
     public void draw () {
-        background(0);
-        for (Container c : containers) {
+        background(BACKGROUND_COLOR);
+        for (int i=0; i<containers.size(); i++) {
+            Container c = containers.get(i);
+            Portraitor p = portraitors.get(i);
             if (c.alive) {
                 c.draw();
+            } else if (!p.calculating() && !c.full) {
+                int [] boundingBox = c.getBoundingBox();
+                PImage img = p.getOutput(
+                        boundingBox[0] - MARGIN * 2,
+                        boundingBox[1] - MARGIN * 2,
+                        0
+                );
+                c.setImage(img);
+                c.display();
+            } else {
+                System.out.println("end of times");
             }
         }
     }
 
-    public PGraphics createPortrait() {
-        // new PGRAPHIC
-        return null;
-    }
 
-    public PImage getPImage () {
+
+    // PImage
+    public String getPImage () {
         // fake face request
         try {
             String path = "test/imgs";
@@ -68,8 +97,9 @@ public class Main extends PApplet {
             Object res[] = Arrays.stream(contents).filter(x -> x.contains(".jpg")).toArray();
             int r = round(random(res.length-1));
             String s = path+"/"+res[r].toString();
-            PImage img = loadImage(s);
-            return img;
+            // PImage img = loadImage(s);
+            // return img;
+            return s;
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
