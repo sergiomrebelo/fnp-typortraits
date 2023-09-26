@@ -19,6 +19,7 @@ public class Container {
     private Main p5;
     private boolean DEBUG = false;
     private PGraphics graphic = null;
+    protected boolean waiting = false;
 
     public Container (PImage img, float x, float y, float w, float h, int[] lifespan, Main p5) {
         this.x = x;
@@ -87,6 +88,7 @@ public class Container {
     protected void setImage (PImage img) {
         this.img = img;
         this.graphic = null;
+        this.waiting = true;
         // this.img.resize((int) this.w, 0);
     }
 
@@ -114,6 +116,8 @@ public class Container {
         this.graphic.imageMode(CENTER);
         this.graphic.image(this.img, this.graphic.width/2, this.graphic.height/2);
         this.graphic.endDraw();
+
+        this.waiting = false;
     }
 
     protected void setCaption (String caption) {

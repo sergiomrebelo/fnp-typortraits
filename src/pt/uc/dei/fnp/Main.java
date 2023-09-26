@@ -49,15 +49,15 @@ public class Main extends PApplet {
             for (int j=0; j<nRows; j++) {
                 float x = i * rectWidth;
                 float y = j * rectHeight;
-                String s = this.getPImage();
-                PImage img = loadImage(s);
+                // String s = this.getPImage();
+                // PImage img = loadImage(s);
                 Container c = new Container(null, x, y, rectWidth, rectHeight, lifespan, this);
                 Portraitor p = new Portraitor(this, logger);
-                p.portrait(img, true);
-                p.placeElements();
+                // p.portrait(img, true);
+                // p.placeElements();
                 if (DEBUG) {
                     c.turnOnDebug();
-                    c.setCaption(s);
+                    // c.setCaption(s);
                 }
                 portraitors.add(p);
                 containers.add(c);
@@ -69,7 +69,10 @@ public class Main extends PApplet {
     public void draw () {
         // get frame
         PImage newFrame = reader.getValueAsPImage("cam1_frame_grayscale_full");
-        System.out.println(newFrame);
+        // System.out.println("NEW_FRAME= "+newFrame);
+        if (newFrame != null) {
+            // add a new face
+        }
 
         background(BACKGROUND_COLOR);
         for (int i=0; i<containers.size(); i++) {
@@ -78,17 +81,8 @@ public class Main extends PApplet {
             if (c.alive) {
                 c.draw();
             } else if (c.full) {
-                // assign a new image to container
-                String s = this.getPImage();
-                PImage img = loadImage(s);
-                p.portrait(img, true);
-                p.placeElements();
-                if (DEBUG) {
-                    c.draw();
-                    c.setCaption(s);
-                }
-                c.full = false;
-            } else if (!p.calculating() && !c.full) {
+                addFakeImage(c, p);
+            } else if (!p.calculating() && !c.full && c.waiting) {
                 int [] boundingBox = c.getBoundingBox();
                 PImage img = p.getOutput(
                         boundingBox[0] - MARGIN * 2,
@@ -106,6 +100,18 @@ public class Main extends PApplet {
 
     }
 
+
+    public void addFakeImage (Container c, Portraitor p) {
+        String s = this.getPImage();
+        PImage img = loadImage(s);
+        p.portrait(img, true);
+        p.placeElements();
+        if (DEBUG) {
+            c.draw();
+            c.setCaption(s);
+        }
+        c.full = false;
+    }
 
 
     // PImage
@@ -126,6 +132,13 @@ public class Main extends PApplet {
             return null;
         }
     }
+
+    public void keyPressed () {
+        if (Character.toLowerCase(key) == 'a' ) {
+
+        }
+    }
+
 
     public static void main(String[] args) {
         System.out.println("👋");
