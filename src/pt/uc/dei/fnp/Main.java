@@ -23,8 +23,8 @@ public class Main extends PApplet {
     public FnpDataReader reader;
 
     public void settings() {
-        // size(500, 500);
-        fullScreen(1);
+        size(900, 100);
+        // fullScreen(1);
     }
 
     public void setup() {
@@ -49,15 +49,10 @@ public class Main extends PApplet {
             for (int j=0; j<nRows; j++) {
                 float x = i * rectWidth;
                 float y = j * rectHeight;
-                // String s = this.getPImage();
-                // PImage img = loadImage(s);
                 Container c = new Container(null, x, y, rectWidth, rectHeight, lifespan, this);
                 Portraitor p = new Portraitor(this, logger);
-                // p.portrait(img, true);
-                // p.placeElements();
                 if (DEBUG) {
                     c.turnOnDebug();
-                    // c.setCaption(s);
                 }
                 portraitors.add(p);
                 containers.add(c);
@@ -75,14 +70,18 @@ public class Main extends PApplet {
         }
 
         background(BACKGROUND_COLOR);
+
         for (int i=0; i<containers.size(); i++) {
             Container c = containers.get(i);
             Portraitor p = portraitors.get(i);
+            // System.out.println("p.calculating="+p.calculating()+" c.full="+c.full+" c.waiting="+c.waiting);
+            if (p.calculating()) {
+                // System.out.println("is p.calculating="+i);
+            }
             if (c.alive) {
                 c.draw();
-            } else if (c.full) {
-                addFakeImage(c, p);
-            } else if (!p.calculating() && !c.full && c.waiting) {
+            } else if (!p.calculating() && c.waiting) {
+                // System.out.println("nex");
                 int [] boundingBox = c.getBoundingBox();
                 PImage img = p.getOutput(
                         boundingBox[0] - MARGIN * 2,
@@ -110,7 +109,9 @@ public class Main extends PApplet {
             c.draw();
             c.setCaption(s);
         }
-        c.full = false;
+        c.full = true;
+        c.waiting = true;
+        System.out.println("🌚 add fake image to wall");
     }
 
 
@@ -135,7 +136,15 @@ public class Main extends PApplet {
 
     public void keyPressed () {
         if (Character.toLowerCase(key) == 'a' ) {
-
+            for (int i=0; i<containers.size(); i++) {
+                Container c = containers.get(i);
+                System.out.println("c.alive="+c.alive+" c.full="+c.full);
+                if (!c.alive && !c.full) {
+                    addFakeImage(c, portraitors.get(i));
+                    // System.out.println("🌚 at pos="+i);
+                    break;
+                }
+            }
         }
     }
 

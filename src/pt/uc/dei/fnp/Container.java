@@ -72,6 +72,7 @@ public class Container {
             if (this.lifespan <= 0) {
                 this.lifespan = 0;
                 this.alive = false;
+                this.full = false;
             } else {
                 this.lifespan -= 1;
             }
