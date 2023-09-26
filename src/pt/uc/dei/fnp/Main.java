@@ -56,12 +56,14 @@ public class Main extends PApplet {
                     c.turnOnDebug();
                     c.setCaption(s);
                 }
-
                 portraitors.add(p);
                 containers.add(c);
             }
         }
     }
+
+
+
 
     public void draw () {
         background(BACKGROUND_COLOR);
@@ -70,6 +72,17 @@ public class Main extends PApplet {
             Portraitor p = portraitors.get(i);
             if (c.alive) {
                 c.draw();
+            } else if (c.full) {
+                // assign a new image to container
+                String s = this.getPImage();
+                PImage img = loadImage(s);
+                p.portrait(img, true);
+                p.placeElements();
+                if (DEBUG) {
+                    c.draw();
+                    c.setCaption(s);
+                }
+                c.full = false;
             } else if (!p.calculating() && !c.full) {
                 int [] boundingBox = c.getBoundingBox();
                 PImage img = p.getOutput(
@@ -80,7 +93,9 @@ public class Main extends PApplet {
                 c.setImage(img);
                 c.display();
             } else {
-                System.out.println("end of times");
+                if (DEBUG) {
+                    c.draw();
+                }
             }
         }
     }

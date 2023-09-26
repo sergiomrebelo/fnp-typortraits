@@ -8,7 +8,8 @@ public class Container {
     private static final int TEXT_SIZE = 16;
     protected float x = 0, y = 0, w = 0, h=0;
     protected int c = 255;
-    protected int lifespan = 0;
+    protected int lifespan = 0, oLifespan =0;
+    protected int[] lifespanParams;
     protected PImage img;
     protected boolean alive = false, full=false;
     private String caption = null;
@@ -22,20 +23,24 @@ public class Container {
         this.w = w;
         this.h = h;
         this.img = img;
+        this.lifespanParams = lifespan;
         if (this.img != null) {
             this.img.resize((int) this.w, 0);
         }
-        this.lifespan = (int) (lifespan[0] + (Math.random()*(lifespan[0] - lifespan[1])));
+        this.renewLifespan(lifespan);
         this.c = (int) (Math.random() * 255);
         this.p5 = p5;
         this.alive = false;
     }
 
     public void draw () {
+        p5.pushStyle();
         if (this.alive) {
-            p5.pushStyle();
             p5.noStroke();
             int opacity = this.lifespan;
+            if (this.oLifespan - this.lifespan < 255) {
+                opacity = Math.abs(this.oLifespan - this.lifespan);
+            }
             opacity = constrain(opacity, 0, 255);
             // p5.fill(this.c, opacity);
             if (this.DEBUG) {
@@ -55,19 +60,22 @@ public class Container {
                 p5.textAlign(CENTER, CENTER);
                 p5.textSize(TEXT_SIZE);
                 p5.fill(0);
-                p5.text(this.caption, this.x + this.w / 2,  this.y + this.h - (TEXT_SIZE * 1.35f));
+                p5.text(this.caption+" "+this.lifespan, this.x + this.w / 2,  this.y + this.h - (TEXT_SIZE * 1.35f));
             }
-
-            p5.popStyle();
-
             if (this.lifespan <= 0) {
                 this.lifespan = 0;
-                System.out.println("dead");
                 this.alive = false;
             } else {
                 this.lifespan -= 1;
             }
+        } else if (this.full) {
+            p5.fill(255,0,0);
+            p5.rect(this.x, this.y, this.w, this.h);
+        } else {
+            p5.fill(255,0,255);
+            p5.rect(this.x, this.y, this.w, this.h);
         }
+        p5.popStyle();
     }
 
     protected void setImage (PImage img) {
@@ -78,7 +86,13 @@ public class Container {
     protected boolean display() {
         this.alive = true;
         this.full = true;
+        this.renewLifespan(this.lifespanParams);
         return true;
+    }
+
+    private void renewLifespan (int[] params) {
+        this.lifespan = (int) (params[0] + (Math.random()*(params[0] - params[1])));
+        this.oLifespan = this.lifespan;
     }
 
     protected boolean turnOnDebug () {
@@ -92,5 +106,9 @@ public class Container {
 
     protected int [] getBoundingBox () {
         return new int[]{(int) this.w, (int) this.y};
+    }
+
+    public String toString() {
+        return "["+(this.x/this.w)+","+(this.y/this.h)+"] lifespan:"+this.lifespan+" | alive:"+this.alive+" | full:"+this.full;
     }
 }
