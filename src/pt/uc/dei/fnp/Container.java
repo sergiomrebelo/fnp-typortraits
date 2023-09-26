@@ -1,5 +1,7 @@
 package pt.uc.dei.fnp;
 
+import processing.core.PConstants;
+import processing.core.PGraphics;
 import processing.core.PImage;
 import static processing.core.PApplet.constrain;
 import static processing.core.PConstants.CENTER;
@@ -7,6 +9,7 @@ import static processing.core.PConstants.CENTER;
 public class Container {
     private static final int TEXT_SIZE = 16;
     protected float x = 0, y = 0, w = 0, h=0;
+    private float s = 1f;
     protected int c = 255;
     protected int lifespan = 0, oLifespan =0;
     protected int[] lifespanParams;
@@ -15,7 +18,7 @@ public class Container {
     private String caption = null;
     private Main p5;
     private boolean DEBUG = false;
-
+    private PGraphics graphic = null;
 
     public Container (PImage img, float x, float y, float w, float h, int[] lifespan, Main p5) {
         this.x = x;
@@ -51,7 +54,10 @@ public class Container {
 
             p5.imageMode(CENTER);
             // p5.tint(opacity);
-            p5.image(this.img, this.x+this.w/2, this.y+this.h/2);
+            if (graphic == null) {
+                this.placeGraphics();
+            }
+             p5.image(this.graphic, this.x+this.w/2, this.y+this.h/2);
 
             p5.fill(255, 255-opacity);
             p5.rect(this.x, this.y, this.w, this.h);
@@ -80,6 +86,7 @@ public class Container {
 
     protected void setImage (PImage img) {
         this.img = img;
+        this.graphic = null;
         // this.img.resize((int) this.w, 0);
     }
 
@@ -100,12 +107,21 @@ public class Container {
         return true;
     }
 
+    private void placeGraphics () {
+        this.graphic = p5.createGraphics((int)(this.w * this.s), (int)(this.h * this.s));
+        this.graphic.beginDraw();
+        this.graphic.background(255);
+        this.graphic.imageMode(CENTER);
+        this.graphic.image(this.img, this.graphic.width/2, this.graphic.height/2);
+        this.graphic.endDraw();
+    }
+
     protected void setCaption (String caption) {
         this.caption = caption;
     }
 
     protected int [] getBoundingBox () {
-        return new int[]{(int) this.w, (int) this.y};
+        return new int[]{(int) this.w, (int) (this.h*2)};
     }
 
     public String toString() {

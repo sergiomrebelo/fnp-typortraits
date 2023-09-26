@@ -22,7 +22,7 @@ public class Main extends PApplet {
 
     public void settings() {
         // size(500, 500);
-        fullScreen(2);
+        fullScreen(1);
     }
 
     public void setup() {
@@ -46,9 +46,7 @@ public class Main extends PApplet {
                 float y = j * rectHeight;
                 String s = this.getPImage();
                 PImage img = loadImage(s);
-
                 Container c = new Container(null, x, y, rectWidth, rectHeight, lifespan, this);
-
                 Portraitor p = new Portraitor(this, logger);
                 p.portrait(img, true);
                 p.placeElements();
@@ -98,6 +96,7 @@ public class Main extends PApplet {
                 }
             }
         }
+
     }
 
 
