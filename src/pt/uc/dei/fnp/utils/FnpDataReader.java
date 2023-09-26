@@ -173,7 +173,7 @@ public class FnpDataReader implements Runnable {
         return (PImage) getValue(topic);
     }
 
-    JSONObject getValueAsJSON(String... topic) {
+    public JSONObject getValueAsJSON(String... topic) {
         return (JSONObject) getValue(topic);
     }
 

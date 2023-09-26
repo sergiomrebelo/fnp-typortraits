@@ -2,6 +2,8 @@ package pt.uc.dei.fnp;
 
 import approach6.Portraitor;
 import processing.core.*;
+import processing.data.JSONArray;
+import processing.data.JSONObject;
 import pt.uc.dei.fnp.utils.*;
 
 import java.io.File;
@@ -10,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -63,11 +66,48 @@ public class Main extends PApplet {
 
     public void draw () {
         // get frame
-        PImage newFrame = reader.getValueAsPImage("cam1_frame_grayscale_full");
+        PImage frame = reader.getValueAsPImage("cam1_frame_grayscale_full");
+        JSONObject facesData = reader.getValueAsJSON("cam1_face_detections");
         // System.out.println("NEW_FRAME= "+newFrame);
-        if (newFrame != null) {
-            // add a new face
+        if (frame != null && facesData != null) {
+            ArrayList<Integer> availableWallPositions = getAvailableWallPositions();
+            int currentAvailablePos = availableWallPositions.size();
+            if (currentAvailablePos > 0) {
+                int j = 0;
+                Collections.shuffle(availableWallPositions);
+                JSONArray facesBounds = facesData.getJSONArray("detections");
+                for (int i = 0; i < facesBounds.size(); i++) {
+                    if (currentAvailablePos > 0) {
+                        JSONObject detection = facesBounds.getJSONObject(i);
+                        int faceX = (int) detection.getFloat("x") * frame.width;
+                        int faceY = (int) detection.getFloat("y") * frame.height;
+                        int faceW = (int) detection.getFloat("w") * frame.width;
+                        int faceH = (int) detection.getFloat("h") * frame.height;
+                        PImage img = frame.get(faceX, faceY, faceW, faceH);
+
+                        // add image to wall
+                        int pos = availableWallPositions.get(j);
+                        String s = String.valueOf(millis());
+                        Container c = containers.get(pos);
+                        Portraitor p = portraitors.get(pos);
+                        p.portrait(img, true);
+                        p.placeElements();
+                        if (DEBUG) {
+                            c.draw();
+                            c.setCaption(s);
+                        }
+                        c.full = true;
+                        c.waiting = true;
+                        System.out.println("🌝 add real image to wall");
+
+                        currentAvailablePos--;
+                        j++;
+                    }
+                }
+            }
         }
+
+        // System.out.println("getAvailableWallPositions="+getAvailableWallPositions());
 
         background(BACKGROUND_COLOR);
 
@@ -115,7 +155,19 @@ public class Main extends PApplet {
     }
 
 
-    // PImage
+    public ArrayList<Integer> getAvailableWallPositions () {
+        ArrayList<Integer> availablePositions = new ArrayList<>();
+        for (int i=0; i<containers.size(); i++) {
+            Container c = containers.get(i);
+            if (!c.alive && !c.full) {
+                availablePositions.add(i);
+            }
+        }
+
+        return availablePositions;
+    }
+
+
     public String getPImage () {
         // fake face request
         try {
@@ -136,14 +188,11 @@ public class Main extends PApplet {
 
     public void keyPressed () {
         if (Character.toLowerCase(key) == 'a' ) {
-            for (int i=0; i<containers.size(); i++) {
-                Container c = containers.get(i);
-                System.out.println("c.alive="+c.alive+" c.full="+c.full);
-                if (!c.alive && !c.full) {
-                    addFakeImage(c, portraitors.get(i));
-                    // System.out.println("🌚 at pos="+i);
-                    break;
-                }
+            ArrayList<Integer> availablePositions = getAvailableWallPositions();
+            if (availablePositions.size() > 0) {
+                Collections.shuffle(availablePositions);
+                int pos = availablePositions.get(0);
+                addFakeImage(containers.get(pos), portraitors.get(pos));
             }
         }
     }
