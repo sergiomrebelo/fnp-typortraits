@@ -1,5 +1,15 @@
 package pt.uc.dei.fnp.utils;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import processing.core.*;
+import processing.data.*;
+
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Properties;
 import java.time.Duration;
@@ -7,6 +17,8 @@ import java.io.ByteArrayInputStream;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static processing.core.PConstants.RGB;
 
 class FnpDataReader implements Runnable {
 
@@ -65,7 +77,7 @@ class FnpDataReader implements Runnable {
         pollTimeout = (int) Math.floor(1000 / 60f / (float) consumers.length);
     }
 
-    void run() {
+    public void run() {
         while (true) {
 
             // For each topic to be consumed
@@ -110,7 +122,7 @@ class FnpDataReader implements Runnable {
                         e.printStackTrace();
                     }
                 } else {
-                    JSONObject json = parseJSONObject((String) lastRecord.value());
+                    JSONObject json = JSONObject.parse((String) lastRecord.value());
                     value = json;
                 }
 
