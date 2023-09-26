@@ -20,7 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static processing.core.PConstants.RGB;
 
-class FnpDataReader implements Runnable {
+public class FnpDataReader implements Runnable {
 
     private static final String KAFKA_SERVER_HOST_AND_PORT = "localhost:9092";
     private static final float DEFAULT_READINGS_PER_SECOND = 30;
@@ -39,7 +39,7 @@ class FnpDataReader implements Runnable {
     private Thread thread = new Thread(this);
     private boolean receivedAnyRecord = false;
 
-    FnpDataReader(String... topics) {
+    public FnpDataReader(String... topics) {
         // Set array with topics to consume
         if (topics.length == 0) {
             throw new RuntimeException("No topics passed.");
@@ -173,7 +173,7 @@ class FnpDataReader implements Runnable {
         }
     }
 
-    PImage getValueAsPImage(String... topic) {
+    public PImage getValueAsPImage(String... topic) {
         return (PImage) getValue(topic);
     }
 

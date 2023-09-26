@@ -2,6 +2,7 @@ package pt.uc.dei.fnp;
 
 import approach6.Portraitor;
 import processing.core.*;
+import pt.uc.dei.fnp.utils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +20,7 @@ public class Main extends PApplet {
     protected ArrayList<Container> containers = new ArrayList<>();
     protected ArrayList<Portraitor> portraitors = new ArrayList<>();
     public static Logger logger = Logger.getLogger(approach6.Main.class.getName());
+    public FnpDataReader reader;
 
     public void settings() {
         // size(500, 500);
@@ -39,6 +41,9 @@ public class Main extends PApplet {
         BACKGROUND_COLOR = parseInt(prop.getProperty("fnp.backgroundColor"));
         DEBUG = parseBoolean(prop.getProperty("debug"));
         System.out.println("DEBUG="+DEBUG);
+
+        reader = new FnpDataReader("cam1_frame_grayscale_full", "cam1_face_detections");
+        // reader2.setReadingsPerSecond(5);
 
         for (int i=0; i<nCols; i++) {
             for (int j=0; j<nRows; j++) {
@@ -61,9 +66,11 @@ public class Main extends PApplet {
     }
 
 
-
-
     public void draw () {
+        // get frame
+        PImage newFrame = reader.getValueAsPImage("cam1_frame_grayscale_full");
+        System.out.println(newFrame);
+
         background(BACKGROUND_COLOR);
         for (int i=0; i<containers.size(); i++) {
             Container c = containers.get(i);
