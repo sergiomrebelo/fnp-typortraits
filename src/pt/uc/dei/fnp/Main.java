@@ -19,15 +19,17 @@ import java.util.logging.Logger;
 public class Main extends PApplet {
     static private Properties prop = new Properties();
     static private int MARGIN, BACKGROUND_COLOR = 0;
+    static private int MIN_CONFIDANCE = 20;
     static private boolean DEBUG = false;
     protected ArrayList<Container> containers = new ArrayList<>();
     protected ArrayList<Portraitor> portraitors = new ArrayList<>();
     public static Logger logger = Logger.getLogger(approach6.Main.class.getName());
     public FnpDataReader reader;
+    private PImage res = null;
 
     public void settings() {
-        size(900, 100);
-        // fullScreen(1);
+        // size(900, 100);
+        fullScreen(1);
     }
 
     public void setup() {
@@ -42,11 +44,13 @@ public class Main extends PApplet {
 
         MARGIN = parseInt(prop.getProperty("portrait.margin"));
         BACKGROUND_COLOR = parseInt(prop.getProperty("fnp.backgroundColor"));
+        MIN_CONFIDANCE = parseInt(prop.getProperty("fnp.minConf"));
         DEBUG = parseBoolean(prop.getProperty("debug"));
+
         System.out.println("DEBUG="+DEBUG);
 
         reader = new FnpDataReader("cam1_frame_grayscale_full", "cam1_face_detections");
-        // reader2.setReadingsPerSecond(5);
+        reader.setReadingsPerSecond(1);
 
         for (int i=0; i<nCols; i++) {
             for (int j=0; j<nRows; j++) {
@@ -66,10 +70,14 @@ public class Main extends PApplet {
 
     public void draw () {
         // get frame
+        // frame && data ?
         PImage frame = reader.getValueAsPImage("cam1_frame_grayscale_full");
+        if (frame != null) {
+            res = frame.copy();
+        }
         JSONObject facesData = reader.getValueAsJSON("cam1_face_detections");
         // System.out.println("NEW_FRAME= "+newFrame);
-        if (frame != null && facesData != null) {
+        if (facesData != null && res !=null) {
             ArrayList<Integer> availableWallPositions = getAvailableWallPositions();
             int currentAvailablePos = availableWallPositions.size();
             if (currentAvailablePos > 0) {
@@ -79,29 +87,39 @@ public class Main extends PApplet {
                 for (int i = 0; i < facesBounds.size(); i++) {
                     if (currentAvailablePos > 0) {
                         JSONObject detection = facesBounds.getJSONObject(i);
-                        int faceX = (int) detection.getFloat("x") * frame.width;
-                        int faceY = (int) detection.getFloat("y") * frame.height;
-                        int faceW = (int) detection.getFloat("w") * frame.width;
-                        int faceH = (int) detection.getFloat("h") * frame.height;
-                        PImage img = frame.get(faceX, faceY, faceW, faceH);
+                        if (detection.getFloat("confidance") > MIN_CONFIDANCE) {
+                            // System.out.println("detection="+detection+" round="+((round(detection.getFloat("x"))))+"mult="+(round(detection.getFloat("x")) * res.width));
+                            System.out.println("detection=" + detection.getFloat("confidance"));
+                            int faceX = round(detection.getFloat("x") * res.width);
+                            int faceY = round(detection.getFloat("y") * res.height);
+                            int faceW = round(detection.getFloat("w") * res.width);
+                            int faceH = round(detection.getFloat("h") * res.height);
+                            PImage img = res.get(faceX, faceY, faceW, faceH);
 
-                        // add image to wall
-                        int pos = availableWallPositions.get(j);
-                        String s = String.valueOf(millis());
-                        Container c = containers.get(pos);
-                        Portraitor p = portraitors.get(pos);
-                        p.portrait(img, true);
-                        p.placeElements();
-                        if (DEBUG) {
-                            c.draw();
-                            c.setCaption(s);
+
+                            // add image to wall
+                            int pos = availableWallPositions.get(j);
+                            String s = String.valueOf(millis());
+                            Container c = containers.get(pos);
+                            Portraitor p = portraitors.get(pos);
+                            int[] bbox = c.getBoundingBox();
+                            img.resize(bbox[0] - MARGIN * 2, 0);
+                            // System.out.println("res="+res+" w="+res.width+" h="+res.height);
+                            // System.out.println("img="+img+" w="+img.width+" h="+img.height);
+                            // System.out.println("facesValues"+faceX+" "+faceY+" "+faceW+" "+faceH);
+                            p.portrait(img, true);
+                            p.placeElements();
+                            if (DEBUG) {
+                                c.draw();
+                                c.setCaption(s);
+                            }
+                            c.full = true;
+                            c.waiting = true;
+                            System.out.println("🌝 add real image to wall");
+
+                            currentAvailablePos--;
+                            j++;
                         }
-                        c.full = true;
-                        c.waiting = true;
-                        System.out.println("🌝 add real image to wall");
-
-                        currentAvailablePos--;
-                        j++;
                     }
                 }
             }
@@ -115,9 +133,6 @@ public class Main extends PApplet {
             Container c = containers.get(i);
             Portraitor p = portraitors.get(i);
             // System.out.println("p.calculating="+p.calculating()+" c.full="+c.full+" c.waiting="+c.waiting);
-            if (p.calculating()) {
-                // System.out.println("is p.calculating="+i);
-            }
             if (c.alive) {
                 c.draw();
             } else if (!p.calculating() && c.waiting) {

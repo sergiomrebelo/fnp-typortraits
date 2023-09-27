@@ -215,7 +215,7 @@ public class FnpDataReader implements Runnable {
    │ Set methods │
    └─────────────*/
 
-    void setReadingsPerSecond(float readingsPerSecond) {
+    public void setReadingsPerSecond(float readingsPerSecond) {
         this.readingsPerSecond = readingsPerSecond;
     }
 
