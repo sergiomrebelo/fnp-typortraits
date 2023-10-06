@@ -20,12 +20,21 @@ public class Main extends PApplet {
     static private Properties prop = new Properties();
     static private int MARGIN, BACKGROUND_COLOR = 0;
     static private int MIN_CONFIDANCE = 20;
+    static private int REQ_BYSECOND = 5;
+    static private int INTERVAL = 20000;
     static private boolean DEBUG = false;
+
+    static private String FLAG_DETECTION_CAM = "cam1_frame_grayscale_full";
+    static private String FLAG_DETECTION_BBOX = "cam1_face_detections";
+
     protected ArrayList<Container> containers = new ArrayList<>();
     protected ArrayList<Portraitor> portraitors = new ArrayList<>();
     public static Logger logger = Logger.getLogger(approach6.Main.class.getName());
     public FnpDataReader reader;
     private PImage res = null;
+
+    private int startTime =0;
+
 
     public void settings() {
         // size(900, 100);
@@ -33,6 +42,7 @@ public class Main extends PApplet {
     }
 
     public void setup() {
+
         int nCols = parseInt(prop.getProperty("fnp.cols"));
         int nRows = parseInt(prop.getProperty("fnp.rows"));
         int [] lifespan = {
@@ -45,12 +55,16 @@ public class Main extends PApplet {
         MARGIN = parseInt(prop.getProperty("portrait.margin"));
         BACKGROUND_COLOR = parseInt(prop.getProperty("fnp.backgroundColor"));
         MIN_CONFIDANCE = parseInt(prop.getProperty("fnp.minConf"));
+        REQ_BYSECOND = parseInt(prop.getProperty("fnp.queryBySecond"));
         DEBUG = parseBoolean(prop.getProperty("debug"));
+        INTERVAL = parseInt(prop.getProperty("fnp.timerAdd"));
 
         System.out.println("DEBUG="+DEBUG);
 
-        reader = new FnpDataReader("cam1_frame_grayscale_full", "cam1_face_detections");
-        reader.setReadingsPerSecond(1);
+        reader = new FnpDataReader(FLAG_DETECTION_CAM, FLAG_DETECTION_BBOX);
+        // reader.setReadingsPerSecond(REQ_BYSECOND);
+
+        startTime = millis();
 
         for (int i=0; i<nCols; i++) {
             for (int j=0; j<nRows; j++) {
@@ -71,13 +85,16 @@ public class Main extends PApplet {
     public void draw () {
         // get frame
         // frame && data ?
-        PImage frame = reader.getValueAsPImage("cam1_frame_grayscale_full");
+        PImage frame = reader.getValueAsPImage(FLAG_DETECTION_CAM);
         if (frame != null) {
             res = frame.copy();
         }
-        JSONObject facesData = reader.getValueAsJSON("cam1_face_detections");
+        JSONObject facesData = reader.getValueAsJSON(FLAG_DETECTION_BBOX);
         // System.out.println("NEW_FRAME= "+newFrame);
-        if (facesData != null && res !=null) {
+        Boolean mayAdd = (millis()-startTime) > INTERVAL;
+        // System.out.println("millis="+millis()+" / startTime"+startTime+" / "+(millis()-startTime)+" / "+INTERVAL);
+        // System.out.println("myAdd="+mayAdd+" _ ");
+        if (facesData != null && res !=null && mayAdd) {
             ArrayList<Integer> availableWallPositions = getAvailableWallPositions();
             int currentAvailablePos = availableWallPositions.size();
             if (currentAvailablePos > 0) {
@@ -87,9 +104,10 @@ public class Main extends PApplet {
                 for (int i = 0; i < facesBounds.size(); i++) {
                     if (currentAvailablePos > 0) {
                         JSONObject detection = facesBounds.getJSONObject(i);
+                        System.out.println("new face detected with the confidance="+detection.getFloat("confidance"));
                         if (detection.getFloat("confidance") > MIN_CONFIDANCE) {
                             // System.out.println("detection="+detection+" round="+((round(detection.getFloat("x"))))+"mult="+(round(detection.getFloat("x")) * res.width));
-                            System.out.println("detection=" + detection.getFloat("confidance"));
+                            // System.out.println("detection=" + detection.getFloat("confidance"));
                             int faceX = round(detection.getFloat("x") * res.width);
                             int faceY = round(detection.getFloat("y") * res.height);
                             int faceW = round(detection.getFloat("w") * res.width);
@@ -116,7 +134,7 @@ public class Main extends PApplet {
                             c.full = true;
                             c.waiting = true;
                             System.out.println("🌝 add real image to wall");
-
+                            startTime = millis();
                             currentAvailablePos--;
                             j++;
                         }

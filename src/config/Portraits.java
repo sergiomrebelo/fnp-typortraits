@@ -15,13 +15,13 @@ import static processing.core.PApplet.*;
 public class Portraits {
     public final static int INPUT_IMAGE_RESIZE = 1000;
     // [min, max]
-    public static int THRESHOLD_BRIGHTNESS_MIN = 20;
+    public static int THRESHOLD_BRIGHTNESS_MIN = 80;
 
-    public static int THRESHOLD_BRIGHTNESS_MAX = 200; // background color
+    public static int THRESHOLD_BRIGHTNESS_MAX = 220; // background color
     // [DEPTH MAX, BRIGHTNESS DIVISION TOLERANCE, BRIGHTNESS THRESHOLD FILTER]
     public static int QUADTREE_SETUP_DEPTH_MAX = 8;
     public static int QUADTREE_SETUP_BRIGHTNESS_DIVISION_TOLERANCE = 5; //10
-    public static int QUADTREE_SETUP_BRIGHTNESS_THRESHOLD_FILTER = 200; //220
+    public static int QUADTREE_SETUP_BRIGHTNESS_THRESHOLD_FILTER = 220; //220
 
 
     public static int [] FONT_SIZES =  {6, 12, 16, 18, 24, 28, 32, 36}; //{8, 12, 16, 18, 24, 22, 32, 42, 48, 56, 64, 72, 80};
